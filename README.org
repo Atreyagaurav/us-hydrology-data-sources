@@ -1,0 +1,26 @@
+* Introduction
+This repo has a collection of information on different hydrological data sources, and information on how to obtain data from them.
+
+I made this for personal purposes and am updating it as I learn more about the data sources, or when I find something new, so it is not an exhaustive list by any means. Feel free to suggests edits or additions through issues or pull requests.
+
+* TOC :noexport:TOC:
+- [[#introduction][Introduction]]
+- [[#rainfall][Rainfall]]
+  - [[#us-hourly-precipitation-data][U.S. Hourly Precipitation Data]]
+- [[#streamflow][Streamflow]]
+- [[#soil][Soil]]
+
+* Rainfall
+
+** U.S. Hourly Precipitation Data
+
+Link: https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.ncdc:C00313
+
+#+begin_quote
+Hourly Precipitation Data (HPD) is digital data set DSI-3240, archived at the National Climatic Data Center (NCDC). The primary source of data for this file is approximately 5,500 US National Weather Service (NWS), Federal Aviation Administration (FAA), and cooperative observer stations in the United States of America, Puerto Rico, the US Virgin Islands, and various Pacific Islands. The earliest data dates vary considerably by state and region: Maine, Pennsylvania, and Texas have data since 1900. The western Pacific region that includes Guam, American Samoa, Marshall Islands, Micronesia, and Palau have data since 1978. Other states and regions have earliest dates between those extremes. The latest data in all states and regions is from the present day.
+#+end_quote
+
+* Streamflow
+
+* Soil
+
