@@ -1,0 +1,167 @@
+* Introduction
+#+begin_quote
+There are currently dozens of climate modelling institutions around the world, each producing its own climate model. Individual climate models are developed and improved over decades as each organization's team of scientists attempts to replicate global climatic processes with as much accuracy as possible. Some modelling centres focus a bit more on certain processes or regions (such as tropical variability and monsoons, or polar climate and sea-ice), and their results, published in the scientific literature, inform all modelling groups. 
+#+end_quote
+
+And the new (as of writing this) one CMIP6, has a SSPs also included in the model.
+
+#+begin_quote
+The latest iteration of scenarios, used for CMIP6 (2016-2021) and IPCC Sixth Assessment Report (AR6) (2021), are the Shared Socio-economic Pathways (SSPs).Reference3 The SSPs scenarios are the most complex created to date and span a range from very ambitious mitigation to ongoing growth in emissions. The most ambitious mitigation scenario was specifically designed to align with the low end of the Paris Agreement global temperature goal of holding the increase in global temperature to well below 2°C above pre-industrial levels, and pursuing efforts to limit the increase to 1.5°C. SSPs combine elements from the previous two iterations of scenarios, the Special Report on Emissions Scenarios (SRES) and Representative Concentration Pathways (RPCs). The SSPs represent alternative storylines about how the world might develop over the coming century in the absence of climate policy.
+#+end_quote
+
+Different scenarios in the SSPs are detailed in the reference link. The summary can be seen in table below.
+
+| SSP1 | Sustainability - Taking the green road                        |
+|      | (low challenges to mitigation and adaptation)                 |
+| SSP2 | Middle of the road -                                          |
+|      | (medium challenges to mitigation and adaptation)              |
+| SSP3 | Regional rivalry - A rocky road                               |
+|      | (high challenges to mitigation and adaptation)                |
+| SSP4 | Inequality - A road divided                                   |
+|      | (low challenges to mitigation, high challenges to adaptation) |
+| SSP5 | Fossil-fueled development - Taking the highway                |
+|      | (high challenges to mitigation, low challenges to adaptation) |
+
+#+begin_quote
+Each SSP drives a corresponding future projection of greenhouse gas emissions and land-use change under the baseline SSP storyline. As previously mentioned, SSPs were designed to function in combination with a new and improved version of RCPs.
+#+end_quote
+
+* How to Download
+Download Link: https://esgf-node.llnl.gov/search/cmip6/
+
+* Parameters
+The parameter list is from when I chose *CMIP6*, *daily*, *CF Standard Name:precipitation flux (35070)*, so it's not exhaustive and is as example.
+
+** MIP Era
+
+Examples:
+- CMIP6 (35070)
+
+
+** Activity
+
+Examples:
+- AerChemMIP (575); C4MIP (107); CDRMIP (46); CFMIP (153); CMIP (1154); DAMIP (1219); DCPP (10960); FAFMIP (46); GMMIP (77); GeoMIP (34); HighResMIP (227); ISMIP6 (9); LS3MIP (49); LUMIP (131); PAMIP (18456); PMIP (37); RFMIP (210); ScenarioMIP (1746); VolMIP (218)
+ 
+** Model Cohort
+
+Examples:
+- Registered (35070)
+ 
+** Product
+
+Examples:
+- model-output (35070)
+ 
+
+** Source ID
+
+Examples:
+- ACCESS-CM2 (57); ACCESS-ESM1-5 (422); AWI-CM-1-1-MR (808); NICAM16-9S (2); NorCPM1 (2648); NorESM2-LM (1352); NorESM2-MM (14); SAM0-UNICON (5); TaiESM1 (296); UKESM1-0-LL (272); UKESM1-ice-LL (4)
+ 
+** Institution ID
+
+Examples:
+AS-RCEC (302); AWI (814); BCC (483); CAMS (13); CAS (885); CCCR-IITM (10); CCCma (3314); CMCC (680); CNRM-CERFACS (1360); CSIRO (422); CSIRO-ARCCSS (57); DKRZ (44); DWD (2); E3SM-Project (12); EC-Earth-Consortium (2479); ECMWF (35); FIO-QLNM (10); HAMMOZ-Consortium (33); INM (36); IPSL (6088); KIOST (8); MIROC (2000); MOHC (5556); MPI-M (943); MRI (843); NASA-GISS (31); NCAR (4446); NCC (4014); NERC (22); NIMS-KMA (41); NIWA (6); NOAA-GFDL (57); NUIST (19); SNU (5)
+ 
+** Source Type
+
+Examples:
+- AER (11191)
+- AGCM (16628)
+- AOGCM (18401)
+- AOGCM,AER (1)
+- BGC (4003)
+- CHEM (1329)
+- ISM (15)
+- LAND (42)
+- OGCM (2)
+- RAD (6)
+ 
+** Nominal Resolution
+
+Examples:
+- 100 km (13561)
+- 1x1 degree (8)
+- 25 km (30)
+- 250 km (17428)
+- 50 km (383)
+- 500 km (3660)
+ 
+
+** Experiment ID
+
+Examples:
+- 1pctCO2 (72); 1pctCO2-4xext (1); 1pctCO2-bgc (14); 1pctCO2-cdr (7); 1pctCO2-rad (15); 1pctCO2Ndep (3); 1pctCO2Ndep-bgc (3); 1pctCO2to4x-withism (2); hist-1950HC (13); hist-CO2 (13); hist-GHG (54); hist-aer (60); hist-bgc (9); hist-nat (112); hist-noLu (27); hist-piAer (20); hist-piNTCF (22); hist-resAMO (5); hist-resIPO (4); hist-sol (18); hist-spAer-all (3); hist-stratO3 (25)
+ 
+** Sub-Experiment
+
+Examples:
+- s1920 (40); s1960 (148); s1961 (162); s2017 (111); s2018 (111); s2019 (51); s2020 (20)
+
+** Variant Label
+
+Example: r100i1p1f1 (84)
+
+#+begin_quote
+CMIP6 netCDF file metadata includes the variant-id global attribute which has the format r1i1p1f1, where the numbers are indices for particular configurations of:
+
+    r: realisation (i.e. ensemble member)
+    i: initialisation method
+    p: physics
+    f: forcing
+#+end_quote
+
+Ref: https://ukesm.ac.uk/cmip6/variant-id/
+
+** Grid Label
+
+Examples:
+- gn (24142)
+- gr (10827)
+- gr1 (83)
+- gr2 (14)
+- gr3 (4)
+ 
+
+** Table ID
+
+Examples:
+- Eday (4254)
+- day (30816)
+ 
+** Frequency
+
+Examples:
+- 1hr (1058); 1hrCM (40); 3hr (33124); 3hrPt (16324); 6hr (53125); 6hrPt (30764); day (962449); dec (2633); fx (146190); mon (4311558); monC (7138); monPt (10501); month (11); subhrPt (4930); yr (127480); yrPt (5379) 
+
+This one looks self-explanatory.
+
+** Realm
+
+Examples:
+- atmos (35069)
+- land (1)
+ 
+** Variable
+
+Examples:
+- pr (30816)
+- prhmax (4254)
+ 
+** CF Standard Name
+
+Examples:
+- precipitation flux (35070)
+ 
+
+** Data Node
+
+Examples:
+- aims3.llnl.gov (1177)
+- cmip.bcc.cma.cn (50297)
+- cmip.dess.tsinghua.edu.cn (1388) 
+
+* Reference links
+- https://climate-scenarios.canada.ca/?page=cmip6-overview-notes
+

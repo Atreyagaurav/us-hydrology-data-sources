@@ -9,6 +9,7 @@ I made this for personal purposes and am updating it as I learn more about the d
   - [[#us-hourly-precipitation-data][U.S. Hourly Precipitation Data]]
 - [[#streamflow][Streamflow]]
 - [[#soil][Soil]]
+- [[#geospatial-data][Geospatial data]]
 
 * Rainfall
 
@@ -24,3 +25,5 @@ Hourly Precipitation Data (HPD) is digital data set DSI-3240, archived at the Na
 
 * Soil
 
+* Geospatial data
+https://www.usgs.gov/educational-resources/usgs-geospatial-data-sources
