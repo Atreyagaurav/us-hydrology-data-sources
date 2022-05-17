@@ -27,3 +27,15 @@ Hourly Precipitation Data (HPD) is digital data set DSI-3240, archived at the Na
 
 * Geospatial data
 https://www.usgs.gov/educational-resources/usgs-geospatial-data-sources
+
+* Climate projection Data
+Link: https://esgf-node.llnl.gov/projects/cmip6/
+
+#+begin_quote
+The Coupled Model Intercomparison Project, which began in 1995 under the auspices of the World Climate Research Programme (WCRP), is now in its sixth phase (CMIP6). CMIP6 coordinates somewhat independent model intercomparison activities and their experiments which have adopted a common infrastructure for collecting, organizing, and distributing output from models performing common sets of experiments. The simulation data produced by models under previous phases of CMIP have been used in thousands of research papers (some of which are listed here), and the multi-model results provide some perspective on errors and uncertainty in model simulations. This information has proved invaluable in preparing high profile reports assessing our understanding of climate and climate change (e.g., the IPCC Assessment Reports).
+#+end_quote
+
+There are different portals based on the locations, the ones for USA is:
+- USA, PCMDI/LLNL (California) - https://esgf-node.llnl.gov/search/cmip6/
+
+The cmip6 data is explained in details in [[./cmip6.org]]
