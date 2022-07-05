@@ -22,6 +22,16 @@ Hourly Precipitation Data (HPD) is digital data set DSI-3240, archived at the Na
 #+end_quote
 
 * Streamflow
+[[https://waterdata.usgs.gov/nwis/][USGSWater Data for the Nation]] has many types of data related to water. For the streamflow data.
+
+- Surface Water - Water flow and levels in streams and lakes.
+- Groundwater - Water levels in wells.
+- Water Quality - Chemical and physical data for streams, lakes, springs, wells and other sites.
+- Water Use - Water use information.
+
+There are buttons there for all of them, for example the daily data for streamflow can be found by clicking ~Surface Water~ then similar page with options will come up and then clicking ~Daily Data~.
+
+There are a lot of choices on [[https://waterdata.usgs.gov/nwis/dv/?referred_module=sw][that page]] reached by the above step. To download data you can choose appropriate choices. If you chose some options and submit you'll get more options about the actual data, like which parameter you want to download and which format. You can also see the available data stations in a map. You can filter by many things, if you want suppose just ohio river stations instead of whole region, you can choose hydrologic region and station name for first, and later choose Ohio hydrologic region with partial match for ~ohio river~ in station name. 
 
 * Soil
 
