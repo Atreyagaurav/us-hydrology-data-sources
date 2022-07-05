@@ -144,6 +144,11 @@ Examples:
 - land (1)
  
 ** Variable
+Didn't find a list for cmip6, but found one for cmip3 and I think these are similar, so I'm going to refer to this for now.
+
+Link: https://pcmdi.llnl.gov/mips/cmip3/variableList.html
+
+This explains the variables and their meanings as well as units. 
 
 Examples:
 - pr (30816)
