@@ -29,6 +29,13 @@ Each SSP drives a corresponding future projection of greenhouse gas emissions an
 * How to Download
 Download Link: https://esgf-node.llnl.gov/search/cmip6/
 
+There is a new interface where you can search more easily and save/share searches, as well as get json results: https://aims2.llnl.gov/search?project=CMIP6
+
+If you're using this website you can use the script =utilities/download-cmip6.sh= that takes the json link form this website's search result and then gives you the list of files in all the result. Be careful to increase the =limit= query parameter in the json link so you don't miss the files. It also saves a =filesizes.txt= files when you run it, so that you can see if you have enough storage before downloading the data in batch.
+
+To download the files from the list it gives you, you can use =wget= or =curl=, =curl= also has the option to resume download if something happens while downloading. Also if you're on linux you can use =curl= with =gnu parallel= to download in parallel.
+
+
 * Parameters
 The parameter list is from when I chose *CMIP6*, *daily*, *CF Standard Name:precipitation flux (35070)*, so it's not exhaustive and is as example.
 
