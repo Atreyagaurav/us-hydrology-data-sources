@@ -9,3 +9,4 @@ edition = "2021"
 regex="1"
 indicatif="0.16.2"
 clap = { version = "3.0", features = ["derive"] }
+string-join = "0.1.2"
