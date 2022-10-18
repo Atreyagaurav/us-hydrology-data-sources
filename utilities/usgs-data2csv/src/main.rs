@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::PathBuf;
@@ -25,15 +26,21 @@ struct Cli {
     /// Number of head lines to print
     #[clap(short, long)]
     head: Option<u64>,
+    /// Print the names of the columns with number and exit
+    #[clap(short, long)]
+    names: bool,
     /// Specific line numbers to skip (Comments not counted)
     #[clap(short, long, value_delimiter = ',', value_name = "N")]
     skip: Vec<u64>,
     /// Only output these column numbers
     #[clap(short = 'C', long, value_delimiter = ',', value_name = "N")]
     columns: Option<Vec<usize>>,
-    /// Split by this Column and write into separate files, requires output
+    /// TODO Split by this Column and write into separate files, requires output
     #[clap(short = 'S', long, requires = "output", value_name = "N")]
     split: Option<usize>,
+    /// Filter by value in a Column
+    #[clap(short = 'f', long, value_delimiter = ',', value_name = "N:VAL")]
+    filter: Option<Vec<String>>,
     /// TODO Recursively parse directories, otherwise skip directories
     #[clap(short, long)]
     recursive: bool,
@@ -76,6 +83,25 @@ fn main() {
         ));
     }
 
+    let mut filter_vals = HashMap::<usize, String>::new();
+    if let Some(ref filter) = args.filter {
+        let mut k: usize;
+        for kvf in filter {
+            let mut kv = kvf.split(":");
+            k = kv
+                .next()
+                .expect("No Key Column for Filtering")
+                .parse()
+                .expect("The Key is not a Column number");
+            filter_vals.insert(
+                k,
+                kv.next()
+                    .expect("The value to Filter the column is empty")
+                    .to_string(),
+            );
+        }
+    }
+
     let mut output_line;
 
     for filename in args.files {
@@ -101,6 +127,13 @@ fn main() {
                     }
                 } else {
                     let row: Vec<String> = line.split("\t").map(sanitize_cell).collect();
+                    if args.names {
+                        for (i, name) in row.iter().enumerate() {
+                            println!("{}: {}", i + 1, name);
+                        }
+                        return;
+                    }
+
                     if col_len.is_none() {
                         col_len = Some(row.len());
                     } else if !(Some(row.len()) == col_len) {
@@ -110,6 +143,18 @@ fn main() {
                             continue;
                         } else {
                             panic!("Length Not matched");
+                        }
+                    }
+
+                    if args.filter.is_some() {
+                        let mut flag = false;
+                        for (k, v) in &filter_vals {
+                            if row.get(*k - 1).expect("Key Column Number out of range") == v {
+                                flag = true;
+                            }
+                        }
+                        if !flag {
+                            continue;
                         }
                     }
 
