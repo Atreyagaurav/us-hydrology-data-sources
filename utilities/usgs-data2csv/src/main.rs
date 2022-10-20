@@ -1,7 +1,9 @@
 use clap::Parser;
+use flate2::read::GzDecoder;
 use std::collections::HashMap;
+use std::ffi::OsStr;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, Lines, Write};
 use std::path::PathBuf;
 use string_join::Join;
 
@@ -20,7 +22,7 @@ struct Cli {
     /// Ignore Errors
     #[clap(short, long)]
     ignore_errors: bool,
-    /// TODO Output file
+    /// Output file to write instead of stdout
     #[clap(short, long)]
     output: Option<PathBuf>,
     /// Number of head lines to print
@@ -62,15 +64,46 @@ fn write_output_check_err(out: &mut Option<BufWriter<File>>, line: &str) -> bool
     match out {
         // couldn't make std::io::stdout and the BufWriter into a
         // single variable. even though both can be used to write into
+        // well, had the same problem with input when I wanted to
+        // support both normal text file and Gzipped file, So I think
+        // I can do it later with same type of enum.
         Some(r) => writeln!(r, "{}", line).is_err(),
         None => writeln!(std::io::stdout(), "{}", line).is_err(),
     }
 }
 
+enum FileFormat {
+    // Stdio,
+    Text(Lines<BufReader<File>>),
+    Gzip(Lines<BufReader<GzDecoder<File>>>),
+}
+
+impl FileFormat {
+    fn text(filename: PathBuf) -> Self {
+        let file = File::open(&filename).unwrap();
+        FileFormat::Text(BufReader::new(file).lines())
+    }
+    fn gzip(filename: PathBuf) -> Self {
+        let file = File::open(&filename).unwrap();
+        FileFormat::Gzip(BufReader::new(GzDecoder::new(file)).lines())
+    }
+}
+
+impl Iterator for FileFormat {
+    type Item = String;
+
+    fn next(&mut self) -> Option<String> {
+        match self {
+            // TODO FileFormat::Stdio => None, // read stdin,
+            FileFormat::Text(lines) => lines.next()?.ok(),
+            FileFormat::Gzip(lines) => lines.next()?.ok(),
+        }
+    }
+}
+
 fn main() {
     let args: Cli = Cli::parse();
-    let mut file: File;
-    let mut reader;
+    let mut file: FileFormat;
     let mut count = 0u64;
     let mut skipped = 0u64;
     let mut col_len: Option<usize> = None;
@@ -108,11 +141,12 @@ fn main() {
         if !filename.is_file() {
             continue;
         }
-        file = File::open(&filename).unwrap();
-        reader = BufReader::new(file);
-
-        for (i, line) in reader.lines().enumerate() {
-            let line = line.unwrap();
+        if filename.extension().and_then(OsStr::to_str) == Some("gz") {
+            file = FileFormat::gzip(filename);
+        } else {
+            file = FileFormat::text(filename);
+        }
+        for (i, line) in file.enumerate() {
             if !line.starts_with(args.comment_chars) {
                 count += 1;
                 if args.skip.contains(&count) {
