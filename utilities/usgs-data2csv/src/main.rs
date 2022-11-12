@@ -13,7 +13,10 @@ struct Cli {
     /// Comment Character
     #[clap(short, long, default_value = "#")]
     comment_chars: char,
-    /// Delineate Character
+    /// Delineate Character In input file
+    #[clap(short = 'D', long, default_value = "\t")]
+    input_deliminator: char,
+    /// Delineate Character in output file
     #[clap(short, long, default_value = ",")]
     delineate: char,
     /// Echo Contents (Skips comments)
@@ -160,7 +163,10 @@ fn main() {
                         break;
                     }
                 } else {
-                    let row: Vec<String> = line.split("\t").map(sanitize_cell).collect();
+                    let row: Vec<String> = line
+                        .split(args.input_deliminator)
+                        .map(sanitize_cell)
+                        .collect();
                     if args.names {
                         for (i, name) in row.iter().enumerate() {
                             println!("{}: {}", i + 1, name);
