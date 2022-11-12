@@ -1,5 +1,6 @@
 use clap::Parser;
-use flate2::read::GzDecoder;
+use flate2::read::GzDecoder as GzDecoderRead;
+use flate2::write::GzDecoder as GzDecoderWrite;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs::File;
@@ -75,38 +76,44 @@ fn write_output_check_err(out: &mut Option<BufWriter<File>>, line: &str) -> bool
     }
 }
 
-enum FileFormat {
-    // Stdio,
+enum ReadFileFormat {
+    // Stdout,
     Text(Lines<BufReader<File>>),
-    Gzip(Lines<BufReader<GzDecoder<File>>>),
+    Gzip(Lines<BufReader<GzDecoderRead<File>>>),
 }
 
-impl FileFormat {
+enum WriteFileFormat {
+    // Stdin,
+    Text(Lines<BufWriter<File>>),
+    Gzip(Lines<BufWriter<GzDecoderWrite<File>>>),
+}
+
+impl ReadFileFormat {
     fn text(filename: PathBuf) -> Self {
         let file = File::open(&filename).unwrap();
-        FileFormat::Text(BufReader::new(file).lines())
+        ReadFileFormat::Text(BufReader::new(file).lines())
     }
     fn gzip(filename: PathBuf) -> Self {
         let file = File::open(&filename).unwrap();
-        FileFormat::Gzip(BufReader::new(GzDecoder::new(file)).lines())
+        ReadFileFormat::Gzip(BufReader::new(GzDecoderRead::new(file)).lines())
     }
 }
 
-impl Iterator for FileFormat {
+impl Iterator for ReadFileFormat {
     type Item = String;
 
     fn next(&mut self) -> Option<String> {
         match self {
-            // TODO FileFormat::Stdio => None, // read stdin,
-            FileFormat::Text(lines) => lines.next()?.ok(),
-            FileFormat::Gzip(lines) => lines.next()?.ok(),
+            // TODO ReadFileFormat::Stdio => None, // read stdin,
+            ReadFileFormat::Text(lines) => lines.next()?.ok(),
+            ReadFileFormat::Gzip(lines) => lines.next()?.ok(),
         }
     }
 }
 
 fn main() {
     let args: Cli = Cli::parse();
-    let mut file: FileFormat;
+    let mut file: ReadFileFormat;
     let mut count = 0u64;
     let mut skipped = 0u64;
     let mut col_len: Option<usize> = None;
@@ -145,9 +152,9 @@ fn main() {
             continue;
         }
         if filename.extension().and_then(OsStr::to_str) == Some("gz") {
-            file = FileFormat::gzip(filename);
+            file = ReadFileFormat::gzip(filename);
         } else {
-            file = FileFormat::text(filename);
+            file = ReadFileFormat::text(filename);
         }
         for (i, line) in file.enumerate() {
             if !line.starts_with(args.comment_chars) {
