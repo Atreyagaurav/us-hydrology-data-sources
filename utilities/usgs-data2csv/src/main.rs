@@ -64,18 +64,6 @@ fn sanitize_cell(raw: &str) -> String {
     }
 }
 
-fn write_output_check_err(out: &mut Option<BufWriter<File>>, line: &str) -> bool {
-    match out {
-        // couldn't make std::io::stdout and the BufWriter into a
-        // single variable. even though both can be used to write into
-        // well, had the same problem with input when I wanted to
-        // support both normal text file and Gzipped file, So I think
-        // I can do it later with same type of enum.
-        Some(r) => writeln!(r, "{}", line).is_err(),
-        None => writeln!(std::io::stdout(), "{}", line).is_err(),
-    }
-}
-
 enum ReadFileFormat {
     // Stdout,
     Text(Lines<BufReader<File>>),
@@ -83,9 +71,44 @@ enum ReadFileFormat {
 }
 
 enum WriteFileFormat {
-    // Stdin,
-    Text(Lines<BufWriter<File>>),
-    Gzip(Lines<BufWriter<GzDecoderWrite<File>>>),
+    Stdout,
+    Text(BufWriter<File>),                                 // simple text file
+    MultiText((String, PathBuf, Option<BufWriter<File>>)), // multiple text files
+    Gzip(BufWriter<GzDecoderWrite<File>>),                 // Gzip compressed output file
+}
+
+fn write_output_check_err(out: &mut WriteFileFormat, line: &str, key: &Option<String>) -> bool {
+    match out {
+        // couldn't make std::io::stdout and the BufWriter into a
+        // single variable. even though both can be used to write into
+        // well, had the same problem with input when I wanted to
+        // support both normal text file and Gzipped file, So I think
+        // I can do it later with same type of enum.
+        WriteFileFormat::Text(r) => writeln!(r, "{}", line).is_err(),
+        WriteFileFormat::Gzip(_) => todo!(),
+        WriteFileFormat::MultiText((prev_key, output_dir, writer)) => {
+            if let Some(key) = key {
+                if writer.is_some() && key == prev_key {
+                    return writeln!(writer.as_mut().unwrap(), "{}", line).is_err();
+                } else {
+                    let mut writer = BufWriter::new(
+                        File::create(output_dir.join(format!("{}.csv", key)))
+                            .expect("Cannot open output file."),
+                    );
+                    let err = writeln!(writer, "{}", line).is_err();
+                    *out = WriteFileFormat::MultiText((
+                        key.to_string(),
+                        output_dir.to_path_buf(),
+                        Some(writer),
+                    ));
+                    return err;
+                }
+            }
+            println!("Here");
+            true
+        }
+        WriteFileFormat::Stdout => writeln!(std::io::stdout(), "{}", line).is_err(),
+    }
 }
 
 impl ReadFileFormat {
@@ -117,14 +140,17 @@ fn main() {
     let mut count = 0u64;
     let mut skipped = 0u64;
     let mut col_len: Option<usize> = None;
-    let mut output = None;
-
-    if args.output.is_some() && args.split.is_none() {
-        // output is a file, otherwise it's a directory for split files.
-        output = Some(BufWriter::new(
+    let mut output = if args.split.is_some() {
+        // output is a directory for split files.
+        WriteFileFormat::MultiText((String::from(""), args.output.unwrap(), None))
+    } else if args.output.is_some() {
+        // output is a file
+        WriteFileFormat::Text(BufWriter::new(
             File::create(args.output.unwrap()).expect("Cannot open output file."),
-        ));
-    }
+        ))
+    } else {
+        WriteFileFormat::Stdout
+    };
 
     let mut filter_vals = HashMap::<usize, String>::new();
     if let Some(ref filter) = args.filter {
@@ -146,6 +172,7 @@ fn main() {
     }
 
     let mut output_line;
+    let mut key: Option<String> = None;
 
     for filename in args.files {
         if !filename.is_file() {
@@ -165,7 +192,7 @@ fn main() {
                 }
 
                 if args.echo {
-                    if write_output_check_err(&mut output, &line) {
+                    if write_output_check_err(&mut output, &line, &key) {
                         // break if can't write to stdout, (when pipe is closed)
                         break;
                     }
@@ -205,6 +232,10 @@ fn main() {
                         }
                     }
 
+                    if let Some(col) = args.split {
+                        key = Some((row[col - 1]).clone());
+                    }
+
                     if let Some(ref columns) = args.columns {
                         output_line = (&args.delineate.to_string()).join(
                             row.iter()
@@ -216,7 +247,7 @@ fn main() {
                         output_line = row.join(&args.delineate.to_string())
                     }
 
-                    if write_output_check_err(&mut output, &output_line) {
+                    if write_output_check_err(&mut output, &output_line, &key) {
                         break;
                     }
                 }
