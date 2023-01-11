@@ -13,12 +13,18 @@ struct Cli {
     /// Comment Character
     #[clap(short, long, default_value = "#")]
     comment_chars: char,
-    /// Delineate Character In input file
+    /// Deliminator Character In input file
     #[clap(short = 'D', long, default_value = "\t")]
     input_deliminator: char,
-    /// Delineate Character in output file
+    /// Quote Character In input file
+    #[clap(short = 'Q', long, default_value = "\"")]
+    input_quote: char,
+    /// Quote Character In output file
+    #[clap(short = 'q', long, default_value = "\"")]
+    quote: char,
+    /// Deliminator Character in output file
     #[clap(short, long, default_value = ",")]
-    delineate: char,
+    deliminator: char,
     /// Echo Contents (Skips comments)
     #[clap(short, long)]
     echo: bool,
@@ -54,13 +60,47 @@ struct Cli {
     files: Vec<PathBuf>,
 }
 
-fn sanitize_cell(raw: &str) -> String {
+fn sanitize_cell(raw: &str, delim: char, quote_char: char) -> String {
     let cell = raw.trim();
-    if cell.contains(",") {
-        return format!("\"{}\"", cell);
+    if cell.contains(delim) {
+        return format!("{0}{1}{0}", quote_char, cell);
     } else {
         return cell.to_string();
     }
+}
+
+fn split_line(line: &str, delim: char, quote_char: Option<char>) -> Vec<String> {
+    let parts = line.split(delim);
+    if quote_char.is_none() {
+        return parts.map(|s| s.to_string()).collect();
+    }
+    let qc = quote_char.unwrap();
+    let mut final_parts: Vec<String> = Vec::new();
+    let mut quoted = false;
+    let mut current = String::new();
+    for p in parts {
+        if !quoted {
+            if p.starts_with(qc) {
+                quoted = true;
+                current.push_str(&p[1..]);
+                current.push(delim);
+            } else {
+                final_parts.push(p.to_string());
+            }
+        } else {
+            if p.ends_with(qc) {
+                quoted = false;
+                let len = p.len();
+                current.push_str(&p[..(len - 1)]);
+                final_parts.push(current);
+                current = String::new();
+            } else {
+                current.push_str(p);
+                current.push(delim);
+            }
+        }
+    }
+    return final_parts;
 }
 
 fn write_output_check_err(out: &mut Option<BufWriter<File>>, line: &str) -> bool {
@@ -163,10 +203,11 @@ fn main() {
                         break;
                     }
                 } else {
-                    let row: Vec<String> = line
-                        .split(args.input_deliminator)
-                        .map(sanitize_cell)
-                        .collect();
+                    let row: Vec<String> =
+                        split_line(&line, args.input_deliminator, Some(args.input_quote))
+                            .iter()
+                            .map(|c| sanitize_cell(c, args.deliminator, args.quote))
+                            .collect();
                     if args.names {
                         for (i, name) in row.iter().enumerate() {
                             println!("{}: {}", i + 1, name);
@@ -199,14 +240,14 @@ fn main() {
                     }
 
                     if let Some(ref columns) = args.columns {
-                        output_line = (&args.delineate.to_string()).join(
+                        output_line = (&args.deliminator.to_string()).join(
                             row.iter()
                                 .enumerate()
                                 .filter(|x| columns.contains(&(x.0 + 1)))
                                 .map(|x| x.1),
                         );
                     } else {
-                        output_line = row.join(&args.delineate.to_string())
+                        output_line = row.join(&args.deliminator.to_string())
                     }
 
                     if write_output_check_err(&mut output, &output_line) {
