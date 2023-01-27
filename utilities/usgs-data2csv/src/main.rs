@@ -41,8 +41,8 @@ struct Cli {
     #[clap(short, long)]
     names: bool,
     /// Specific line numbers to skip (Comments not counted)
-    #[clap(short, long, value_delimiter = ',', value_name = "N")]
-    skip: Vec<u64>,
+    #[clap(short, long, value_delimiter = ',', value_name = "N1[,N2-N4,…]")]
+    skip: Vec<String>,
     /// Only output these column numbers
     #[clap(short = 'C', long, value_delimiter = ',', value_name = "N")]
     columns: Option<Vec<usize>>,
@@ -149,6 +149,19 @@ fn main() {
     let mut file: FileFormat;
     let mut count = 0u64;
     let mut skipped = 0u64;
+    let skip_lines: HashSet<usize> = {
+        let mut sl: HashSet<usize> = HashSet::new();
+        args.skip.iter().for_each(|r| {
+            let mut spl = r.split('-');
+            let start: usize = spl.next().unwrap().parse().unwrap();
+            if let Some(end) = spl.next() {
+                (start..=end.parse().unwrap()).for_each(|n| sl.insert(n));
+            } else {
+                sl.insert(start)
+            }
+        });
+        sl
+    };
     let mut col_len: Option<usize> = None;
     let mut output = None;
 
@@ -192,7 +205,7 @@ fn main() {
         for (i, line) in file.enumerate() {
             if !line.starts_with(args.comment_chars) {
                 count += 1;
-                if args.skip.contains(&count) {
+                if skip_lines.contains(&count) {
                     skipped += 1;
                     continue;
                 }
