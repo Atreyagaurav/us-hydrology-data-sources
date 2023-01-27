@@ -1,6 +1,6 @@
 use clap::Parser;
 use flate2::read::GzDecoder;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Lines, Write};
@@ -36,7 +36,7 @@ struct Cli {
     output: Option<PathBuf>,
     /// Number of head lines to print
     #[clap(short, long)]
-    head: Option<u64>,
+    head: Option<usize>,
     /// Print the names of the columns with number and exit
     #[clap(short, long)]
     names: bool,
@@ -147,17 +147,19 @@ impl Iterator for FileFormat {
 fn main() {
     let args: Cli = Cli::parse();
     let mut file: FileFormat;
-    let mut count = 0u64;
-    let mut skipped = 0u64;
+    let mut count = 0usize;
+    let mut skipped = 0usize;
     let skip_lines: HashSet<usize> = {
         let mut sl: HashSet<usize> = HashSet::new();
         args.skip.iter().for_each(|r| {
             let mut spl = r.split('-');
             let start: usize = spl.next().unwrap().parse().unwrap();
             if let Some(end) = spl.next() {
-                (start..=end.parse().unwrap()).for_each(|n| sl.insert(n));
+                (start..=end.parse().unwrap()).for_each(|n| {
+                    sl.insert(n);
+                });
             } else {
-                sl.insert(start)
+                sl.insert(start);
             }
         });
         sl
