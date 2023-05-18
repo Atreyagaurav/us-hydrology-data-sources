@@ -31,6 +31,9 @@ struct Cli {
     /// Ignore Errors
     #[clap(short, long)]
     ignore_errors: bool,
+    /// Ignore Errors And don't print
+    #[clap(short = 'I', long)]
+    ignore_errors_hard: bool,
     /// Output file to write instead of stdout
     #[clap(short, long)]
     output: Option<PathBuf>,
@@ -52,6 +55,9 @@ struct Cli {
     /// Filter by value in a Column
     #[clap(short = 'f', long, value_delimiter = ',', value_name = "N:VAL")]
     filter: Option<Vec<String>>,
+    /// Filter except the value in a Column
+    #[clap(short = 'F', long, value_delimiter = ',', value_name = "N:VAL")]
+    filter_except: Option<Vec<String>>,
     /// TODO Recursively parse directories, otherwise skip directories
     #[clap(short, long)]
     recursive: bool,
@@ -174,7 +180,7 @@ fn main() {
         ));
     }
 
-    let mut filter_vals = HashMap::<usize, String>::new();
+    let mut filter_vals = HashMap::<(usize, bool), String>::new();
     if let Some(ref filter) = args.filter {
         let mut k: usize;
         for kvf in filter {
@@ -185,7 +191,24 @@ fn main() {
                 .parse()
                 .expect("The Key is not a Column number");
             filter_vals.insert(
-                k,
+                (k, true),
+                kv.next()
+                    .expect("The value to Filter the column is empty")
+                    .to_string(),
+            );
+        }
+    }
+    if let Some(ref filter) = args.filter_except {
+        let mut k: usize;
+        for kvf in filter {
+            let mut kv = kvf.split(":");
+            k = kv
+                .next()
+                .expect("No Key Column for Filtering")
+                .parse()
+                .expect("The Key is not a Column number");
+            filter_vals.insert(
+                (k, false),
                 kv.next()
                     .expect("The value to Filter the column is empty")
                     .to_string(),
@@ -204,7 +227,7 @@ fn main() {
         } else {
             file = FileFormat::text(filename);
         }
-        for (i, line) in file.enumerate() {
+        'file_lines: for (i, line) in file.enumerate() {
             if !line.starts_with(args.comment_chars) {
                 count += 1;
                 if skip_lines.contains(&count) {
@@ -233,24 +256,28 @@ fn main() {
                     if col_len.is_none() {
                         col_len = Some(row.len());
                     } else if !(Some(row.len()) == col_len) {
-                        if args.ignore_errors {
+                        if args.ignore_errors_hard {
+                            continue;
+                        } else if args.ignore_errors {
                             eprintln!("Length Not matched on Line {} (original: {})", count, i);
-                            // just ignore that line
                             continue;
                         } else {
-                            panic!("Length Not matched");
+                            panic!(
+                                "{}",
+                                format!("Length Not matched on Line {} (original: {})", count, i)
+                            );
                         }
                     }
 
-                    if args.filter.is_some() {
-                        let mut flag = false;
+                    if args.filter.is_some() || args.filter_except.is_some() {
                         for (k, v) in &filter_vals {
-                            if row.get(*k - 1).expect("Key Column Number out of range") == v {
-                                flag = true;
+                            let (col, include) = *k;
+                            let matched =
+                                row.get(col - 1).expect("Key Column Number out of range") == v;
+                            if include != matched {
+                                skipped += 1;
+                                continue 'file_lines;
                             }
-                        }
-                        if !flag {
-                            continue;
                         }
                     }
 
