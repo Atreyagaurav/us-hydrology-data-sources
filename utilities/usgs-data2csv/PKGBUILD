@@ -1,0 +1,19 @@
+# Maintainer: Gaurav Atreya <allmanpride@gmail.com>
+pkgname=usgs-data2csv
+pkgver=0.3
+pkgrel=1
+pkgdesc="Tool to extract USGS data from their text files into csvs"
+arch=('x86_64')
+license=('GPL3')
+depends=('gcc-libs')
+makedepends=('rust' 'cargo')
+
+build() {
+	cargo build --release
+}
+
+package() {
+    cd "$srcdir"
+    mkdir -p "$pkgdir/usr/bin"
+    cp "../target/release/${pkgname}" "$pkgdir/usr/bin/${pkgname}"
+}
