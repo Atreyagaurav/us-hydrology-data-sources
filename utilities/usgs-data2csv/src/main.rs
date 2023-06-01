@@ -1,5 +1,7 @@
+use anyhow;
 use clap::Parser;
 use flate2::read::GzDecoder;
+use number_range::NumberRangeOptions;
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsStr;
 use std::fs::File;
@@ -44,11 +46,18 @@ struct Cli {
     #[clap(short, long)]
     names: bool,
     /// Specific line numbers to skip (Comments not counted)
-    #[clap(short, long, value_delimiter = ',', value_name = "N1[,N2-N4,…]")]
-    skip: Vec<String>,
+    #[clap(
+        short,
+        long,
+        value_parser(number_range_parser::<HashSet<usize>>),
+        value_name = "N1[,N2-N4,…]",
+        default_value = ""
+    )]
+    skip: HashSet<usize>,
     /// Only output these column numbers
-    #[clap(short = 'C', long, value_delimiter = ',', value_name = "N")]
-    columns: Option<Vec<usize>>,
+    #[clap(short = 'C', long,
+        value_parser(number_range_parser::<Vec<usize>>), value_name = "N")]
+    columns: Option<std::vec::Vec<usize>>,
     /// TODO Split by this Column and write into separate files, requires output
     #[clap(short = 'S', long, requires = "output", value_name = "N")]
     split: Option<usize>,
@@ -64,6 +73,14 @@ struct Cli {
     /// File list to be parsed
     #[clap(required = true)]
     files: Vec<PathBuf>,
+}
+
+fn number_range_parser<T: FromIterator<usize>>(num: &str) -> Result<T, anyhow::Error> {
+    let rng = NumberRangeOptions::default()
+        .with_default_start(1)
+        .with_range_sep('-')
+        .parse(num)?;
+    Ok(rng.collect::<T>())
 }
 
 fn sanitize_cell(raw: &str, delim: char, quote_char: char) -> String {
@@ -155,21 +172,6 @@ fn main() {
     let mut file: FileFormat;
     let mut count = 0usize;
     let mut skipped = 0usize;
-    let skip_lines: HashSet<usize> = {
-        let mut sl: HashSet<usize> = HashSet::new();
-        args.skip.iter().for_each(|r| {
-            let mut spl = r.split('-');
-            let start: usize = spl.next().unwrap().parse().unwrap();
-            if let Some(end) = spl.next() {
-                (start..=end.parse().unwrap()).for_each(|n| {
-                    sl.insert(n);
-                });
-            } else {
-                sl.insert(start);
-            }
-        });
-        sl
-    };
     let mut col_len: Option<usize> = None;
     let mut output = None;
 
@@ -230,7 +232,7 @@ fn main() {
         'file_lines: for (i, line) in file.enumerate() {
             if !line.starts_with(args.comment_chars) {
                 count += 1;
-                if skip_lines.contains(&count) {
+                if args.skip.contains(&count) {
                     skipped += 1;
                     continue;
                 }
