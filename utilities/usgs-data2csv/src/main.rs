@@ -45,6 +45,9 @@ struct Cli {
     /// Print the names of the columns with number and exit
     #[clap(short, long)]
     names: bool,
+    /// Print the first line number in the file that fits the conditions and exit
+    #[clap(short, long, conflicts_with = "names")]
+    line_number: bool,
     /// Specific line numbers to skip (Comments not counted)
     #[clap(
         short,
@@ -249,8 +252,8 @@ fn main() {
                             .map(|c| sanitize_cell(c, args.deliminator, args.quote))
                             .collect();
                     if args.names {
-                        for (i, name) in row.iter().enumerate() {
-                            println!("{}: {}", i + 1, name);
+                        for (col, name) in row.iter().enumerate() {
+                            println!("{}: {}", col + 1, name);
                         }
                         return;
                     }
@@ -259,9 +262,9 @@ fn main() {
                         col_len = Some(row.len());
                     } else if !(Some(row.len()) == col_len) {
                         if args.ignore_errors_hard {
-                            continue;
+                            col_len = Some(row.len());
                         } else if args.ignore_errors {
-                            eprintln!("Length Not matched on Line {} (original: {})", count, i);
+                            eprintln!("Length Not matched on Line {} (original: {})", count, i + 1);
                             continue;
                         } else {
                             panic!(
@@ -279,6 +282,10 @@ fn main() {
                             if include != matched {
                                 skipped += 1;
                                 continue 'file_lines;
+                            }
+                            if args.line_number {
+                                println!("{}", i);
+                                return;
                             }
                         }
                     }
