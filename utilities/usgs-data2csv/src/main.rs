@@ -48,7 +48,7 @@ struct Cli {
     /// Print the first line number in the file that fits the conditions and exit
     #[clap(short, long, conflicts_with = "names")]
     line_number: bool,
-    /// Specific line numbers to skip (Comments not counted)
+    /// Specific line numbers to skip (Comments and skipped headers not counted)
     #[clap(
         short,
         long,
@@ -57,13 +57,13 @@ struct Cli {
         default_value = ""
     )]
     skip: HashSet<usize>,
+    /// Number of header lines to skip
+    #[clap(short = 'S', long, default_value = "0")]
+    skip_headers: usize,
     /// Only output these column numbers
     #[clap(short = 'C', long,
         value_parser(number_range_parser::<Vec<usize>>), value_name = "N")]
     columns: Option<std::vec::Vec<usize>>,
-    /// TODO Split by this Column and write into separate files, requires output
-    #[clap(short = 'S', long, requires = "output", value_name = "N")]
-    split: Option<usize>,
     /// Filter by value in a Column
     #[clap(short = 'f', long, value_delimiter = ',', value_name = "N:VAL")]
     filter: Option<Vec<String>>,
@@ -178,8 +178,8 @@ fn main() {
     let mut col_len: Option<usize> = None;
     let mut output = None;
 
-    if args.output.is_some() && args.split.is_none() {
-        // output is a file, otherwise it's a directory for split files.
+    if args.output.is_some() {
+        // output is a file
         output = Some(BufWriter::new(
             File::create(args.output.unwrap()).expect("Cannot open output file."),
         ));
@@ -233,6 +233,9 @@ fn main() {
             file = FileFormat::text(filename);
         }
         'file_lines: for (i, line) in file.enumerate() {
+            if i < args.skip_headers {
+                continue;
+            }
             if !line.starts_with(args.comment_chars) {
                 count += 1;
                 if args.skip.contains(&count) {
