@@ -270,11 +270,13 @@ fn main() {
                         col_len = Some(row.len());
 
                         if !args.output_names.is_empty() {
-                            if args.output_names.len() != row.len() {
+                            let input_columns_len =
+                                args.columns.as_ref().map(|c| c.len()).unwrap_or(row.len());
+                            if input_columns_len != args.output_names.len() {
                                 eprintln!(
                                     "{} Names provided; doesn't match {} columns",
                                     args.output_names.len(),
-                                    row.len()
+                                    input_columns_len
                                 );
                                 break;
                             }
