@@ -45,6 +45,9 @@ struct Cli {
     /// Print the names of the columns with number and exit
     #[clap(short, long)]
     names: bool,
+    /// Print the names of the columns with number and exit
+    #[clap(short = 'N', long, value_delimiter = ',')]
+    output_names: Vec<String>,
     /// Print the first line number in the file that fits the conditions and exit
     #[clap(short, long, conflicts_with = "names")]
     line_number: bool,
@@ -221,7 +224,7 @@ fn main() {
         }
     }
 
-    let mut output_line;
+    let mut output_line: String;
 
     for filename in args.files {
         if !filename.is_file() {
@@ -232,6 +235,7 @@ fn main() {
         } else {
             file = FileFormat::text(filename);
         }
+
         'file_lines: for (i, line) in file.enumerate() {
             if i < args.skip_headers {
                 continue;
@@ -262,7 +266,23 @@ fn main() {
                     }
 
                     if col_len.is_none() {
+                        // means so far no data has been read
                         col_len = Some(row.len());
+
+                        if !args.output_names.is_empty() {
+                            if args.output_names.len() != row.len() {
+                                eprintln!(
+                                    "{} Names provided; doesn't match {} columns",
+                                    args.output_names.len(),
+                                    row.len()
+                                );
+                                break;
+                            }
+                            let output_header = args.output_names.join(",");
+                            if write_output_check_err(&mut output, &output_header) {
+                                break;
+                            }
+                        }
                     } else if !(Some(row.len()) == col_len) {
                         if args.ignore_errors_hard {
                             col_len = Some(row.len());
